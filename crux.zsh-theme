@@ -2,13 +2,19 @@
 setopt promptsubst
 autoload -U add-zsh-hook
 
-function ruby_info_prompt {
-  local ruby_version=''
+ruby_info_prompt() {
   if  [ -f "$PWD/.ruby-version" ] ; then
-    ruby_version="$(ruby -v)"
+    if [ -e ~/.rvm/bin/rvm-prompt ]; then
+      RUBY_VERSION_PROMPT="%{$fg[red]%}‹$(~/.rvm/bin/rvm-prompt i v)› %{$reset_color%}"
+    else
+      if which rbenv &> /dev/null; then
+        RUBY_VERSION_PROMPT="%{$fg[red]%}‹$(rbenv version | sed -e "s/ (set.*$//")› %{$reset_color%}"
+      fi
+    fi
   fi
-  echo "⏏ $ruby_version[6,10] "
+  echo $RUBY_VERSION_PROMPT
 }
+
 
 
 PROMPT_SUCCESS_COLOR=$FG[117]
@@ -22,14 +28,14 @@ GIT_PROMPT_INFO=$FG[201]
 
 #PROMPT
 PROMPT='%{$fg[cyan]%}%n%{$reset_color%}@%{$fg[yellow]%}%m'
-PROMPT=$PROMPT'%{$PROMPT_SUCCESS_COLOR%} %~%{$reset_color%} '
+PROMPT=$PROMPT'%{$PROMPT_SUCCESS_COLOR%} %~%{$reset_color%} $(ruby_info_prompt)'
 PROMPT=$PROMPT'%{$GIT_PROMPT_INFO%}$(git_prompt_info)%{$GIT_DIRTY_COLOR%}$(git_prompt_status) '
 #PROMPT=$PROMPT'%{$reset_color%}%{$PROMPT_PROMPT%}$%{$reset_color%} %B%F{red}❯%F{yellow}❯%F{green}❯%f%b'
 PROMPT=$PROMPT'%{$reset_color%}% %B%F{red}❯%F{yellow}❯%F{green}❯%f%b'
 
 
 #GIT BRANCH AND STATUS BRANCH
-ZSH_THEME_GIT_PROMPT_PREFIX="$(ruby_info_prompt)( "
+ZSH_THEME_GIT_PROMPT_PREFIX="( "
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$GIT_PROMPT_INFO%})"
 ZSH_THEME_GIT_PROMPT_DIRT=" %{$GIT_DIRTY_COLOR%}✘"
 ZSH_THEME_GIT_PROMPT_CLEAN=" %{$GIT_CLEAN_COLOR%}✔"
